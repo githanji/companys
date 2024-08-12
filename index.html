@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic One-Page Website with React</title>
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <style>
+        /* Add some basic styling */
+        .banner {
+            padding: 20px;
+            background-color: lightblue;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .dashboard {
+            padding: 20px;
+            background-color: lightgray;
+        }
+
+        .countdown {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Banner Component
+        const Banner = ({ visible, description, link, timeRemaining }) => {
+            if (!visible) return null;
+
+            return (
+                <div className="banner">
+                    <p>{description}</p>
+                    <p>Time remaining: {timeRemaining} seconds</p>
+                    <a href={link} target="_blank" rel="noopener noreferrer">Click here</a>
+                </div>
+            );
+        };
+
+        // Countdown Component
+        const Countdown = ({ startTime, onComplete }) => {
+            const [timeRemaining, setTimeRemaining] = React.useState(startTime);
+
+            React.useEffect(() => {
+                if (timeRemaining <= 0) {
+                    onComplete();
+                    return;
+                }
+
+                const timer = setInterval(() => {
+                    setTimeRemaining(prevTime => prevTime - 1);
+                }, 1000);
+
+                return () => clearInterval(timer);
+            }, [timeRemaining, onComplete]);
+
+            return (
+                <div className="countdown">
+                    <p>Time remaining: {timeRemaining} seconds</p>
+                </div>
+            );
+        };
+
+        // Dashboard Component
+        const Dashboard = ({ setBannerData }) => {
+            const [description, setDescription] = React.useState('');
+            const [timer, setTimer] = React.useState(60); // Default 60 seconds
+            const [link, setLink] = React.useState('');
+            const [visible, setVisible] = React.useState(false);
+
+            const handleSave = () => {
+                const data = { description, timer, link, visible };
+                setBannerData(data);
+            };
+
+            return (
+                <div className="dashboard">
+                    <label>
+                        Description:
+                        <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} />
+                    </label>
+                    <label>
+                        Timer (seconds):
+                        <input type="number" value={timer} onChange={(e) => setTimer(e.target.value)} />
+                    </label>
+                    <label>
+                        Link:
+                        <input type="text" value={link} onChange={(e) => setLink(e.target.value)} />
+                    </label>
+                    <label>
+                        Visible:
+                        <input type="checkbox" checked={visible} onChange={() => setVisible(!visible)} />
+                    </label>
+                    <button onClick={handleSave}>Save</button>
+                </div>
+            );
+        };
+
+        // App Component
+        const App = () => {
+            const [bannerData, setBannerData] = React.useState({
+                description: '',
+                timer: 0,
+                link: '',
+                visible: false
+            });
+
+            const handleComplete = () => {
+                setBannerData(prevState => ({ ...prevState, visible: false }));
+            };
+
+            return (
+                <div className="app">
+                    {bannerData.visible && (
+                        <Banner
+                            visible={bannerData.visible}
+                            description={bannerData.description}
+                            link={bannerData.link}
+                            timeRemaining={bannerData.timer}
+                        />
+                    )}
+                    {bannerData.visible && (
+                        <Countdown startTime={bannerData.timer} onComplete={handleComplete} />
+                    )}
+                    <Dashboard setBannerData={setBannerData} />
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
